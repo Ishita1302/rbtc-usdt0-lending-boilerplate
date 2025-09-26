@@ -48,7 +48,8 @@ RSK_MAINNET_RPC=https://public-node.rsk.co
 - This boiler uses **UmbrellaOracleAdapter** with owner‑settable prices.
 - For a real integration, replace it with a production oracle (e.g. RedStone/Umbrella) and keep the `IPriceOracle` interface.
 
-Then run your custom deployment or reuse `scripts/demo.js` as a template with `--network rskTestnet`.
+Then run your custom deployment using:
+`npx hardhat run --network rskTestnet scripts/demo-testnet.js`
 
 ---
 
@@ -84,9 +85,9 @@ Then run your custom deployment or reuse `scripts/demo.js` as a template with `-
 await pool.depositRBTC({ value: ethers.parseEther("0.01") });
 ```
 
-- **Borrow** 500 USDT0:
+- **Borrow** 400 USDT0:
 ```js
-await pool.borrowUSDT0(ethers.parseUnits("500", 6));
+await pool.borrowUSDT0(ethers.parseUnits("400", 6));
 ```
 
 - **Repay** 200 USDT0:
@@ -133,6 +134,7 @@ contracts/
   tokens/MockUSDT0.sol
 scripts/
   demo.js
+  demo-testnet.js
 hardhat.config.js
 package.json
 .env.example

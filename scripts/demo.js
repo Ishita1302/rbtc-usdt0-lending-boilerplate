@@ -65,10 +65,10 @@ async function main() {
 
   await printAccount("After deposit");
 
-  // 6) Alice borrows 500 USDT0
+  // 6) Alice borrows 400 USDT0
   const borrowAmt = hre.ethers.parseUnits("400", 6);
   await (await pool.connect(alice).borrowUSDT0(borrowAmt)).wait();
-  console.log("Alice borrowed 500 USDT0");
+  console.log("Alice borrowed 400 USDT0");
   await printAccount("After borrow");
 
   // 7) Alice repays 200 USDT0
