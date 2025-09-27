@@ -82,7 +82,7 @@ async function main() {
   console.log("Withdrew RBTC:", hre.ethers.formatEther(withdrawAmt));
   await printAccount("After withdraw");
 
-  console.log("\nDemo testnet completo ✅");
+  console.log("\nDemo testnet completed ✅");
 }
 
 main().catch((e) => {
