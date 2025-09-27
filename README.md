@@ -3,17 +3,15 @@
 
 <img src="rootstock-logo.png" alt="RSK Logo" style="width:100%; height: auto;" />
 
-# RBTC/USDT0 Mini Lending Boilerplate
+# RBTC/USDT0 Simple Lending Boilerplate
 
-> **Goal:** a tiny, runnable boilerplate that shows how to:
-> - deposit **RBTC (native)** as collateral,
-> - **borrow USDT0 (ERC-20, 6 decimals)**,
-> - query prices via a simple **UmbrellaOracleAdapter** (mock),
-> - and compute **health factor** — all in a few minutes.
+> **Goal:** a simple, runnable boilerplate that demonstrates how to:
+> - Deposit **RBTC (native)** as collateral,
+> - Borrow `USDT0 (ERC-20, 6 decimals)`,
+> - Query prices via a simple **UmbrellaOracleAdapter** (mock),
+> - Compute **health factor** — all in a few minutes.
 
 ⚠️ **Educational only. Not audited. Do NOT deploy to mainnet.**
-
----
 
 ## Quick Start (local / Replit)
 
@@ -27,41 +25,181 @@ npm install
 npm run demo
 ```
 
-You will see logs like:
-- deployer & user addresses
-- deployed contract addresses (USDT0, Oracle, Pool)
-- account snapshots after **deposit**, **borrow**, **repay**, **withdraw**
+You will see logs:
+- Deployer & user addresses
+- Deployed contract addresses (USDT0, Oracle, Pool)
+- Account snapshots after **deposit**, **borrow**, **repay**, **withdraw**
+
+Here's how it looks:
+
+```bash
+
+> rbtc-usdt0-lending-boilerplate@0.1.0 demo
+> hardhat run scripts/demo.js
+
+Downloading compiler 0.8.19
+Compiled 13 Solidity files successfully (evm target: paris).
+Deployer: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+Alice   : 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+USDT0  : 0x5FbDB2315678afecb367f032d93F642f64180aa3
+Oracle : 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+Pool   : 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9
+Alice deposited 0.01 RBTC
+
+== After deposit ==
+Collateral (RBTC): 0.01
+Debt (USDT0)     : 0.0
+Collateral USD   : 650.0
+Debt USD         : 0.0
+Max Debt USD     : 455.0
+Health Factor    : 115792089237316195423570985008687907853269984665640564039457.584007913129639935
+Alice borrowed 400 USDT0
+
+== After borrow ==
+Collateral (RBTC): 0.01
+Debt (USDT0)     : 400.0
+Collateral USD   : 650.0
+Debt USD         : 400.0
+Max Debt USD     : 455.0
+Health Factor    : 1.1375
+Alice repaid 200 USDT0
+
+== After repay ==
+Collateral (RBTC): 0.01
+Debt (USDT0)     : 200.0
+Collateral USD   : 650.0
+Debt USD         : 200.0
+Max Debt USD     : 455.0
+Health Factor    : 2.275
+Alice withdrew 0.002 RBTC
+
+== After withdraw ==
+Collateral (RBTC): 0.008
+Debt (USDT0)     : 200.0
+Collateral USD   : 520.0
+Debt USD         : 200.0
+Max Debt USD     : 364.0
+Health Factor    : 1.82
+
+Demo complete ✅
+
+```
 
 > On Hardhat, the "native RBTC" is just the local chain's native coin. The boilerplate treats it as RBTC for consistency.
 
----
 
 ## Deploy to Rootstock (optional)
 
-1) Copy `.env.example` → `.env`, fill in:
-```
+1) Getting tRBTC
+
+You can get tRBTC from the [Rootstock Faucet](https://faucet.rootstock.io/).  You would need at least `0.03 tRBTC` to cover deployment and transaction fees.
+
+2) Configure Environment:
+
+Copy `.env.example` → `.env`, and fill in the values:
+
+```text
 PRIVATE_KEY=0xYOUR_PRIVATE_KEY
 RSK_TESTNET_RPC=https://public-node.testnet.rsk.co
 RSK_MAINNET_RPC=https://public-node.rsk.co
 ```
 
-2) Replace the mock USDT0 with a real token:
-- In real deployments, point the **LendingPool** constructor to the **real USDT0 address**.
-- Keep the oracle mapping: `address(0)` stands for native **RBTC**; `address(USDT0)` for USDT0.
+3) Replace Mock USDT0 with Real Address:
+- The deployment script (`scripts/demo-testnet.js`) currently deploys the `MockUSDT0.sol`. For real deployments, you must use the actual USDT0 token address on Rootstock Testnet (e.g., 0x779Ded0c9e1022225f8E0630b35a9b54bE713736).
 
-3) Prices:
-- This boiler uses **UmbrellaOracleAdapter** with owner‑settable prices.
-- For a real integration, replace it with a production oracle (e.g. RedStone/Umbrella) and keep the `IPriceOracle` interface.
+To achieve this, you need to modify your deployment script (e.g., `scripts/demo-testnet.js`) to use the existing address instead of deploying the mock token.
 
-Then run your custom deployment using:
+It should look like this:
+
+```js
+  // --- ORIGINAL CODE (Mocks deployment) ---
+  // const MockUSDT0 = await ethers.getContractFactory("MockUSDT0");
+  // const usdt0 = await MockUSDT0.deploy(ethers.parseUnits("1000000", 6));
+  // await usdt0.waitForDeployment();
+  // const usdt0Addr = await usdt0.getAddress();
+  // console.log(`USDT0 : ${usdt0Addr} decimals: ${await usdt0.decimals()}n`);
+
+  // --- REPLACEMENT CODE (Real USDT0 address) ---
+  // ⚠️ Replace this placeholder with the actual Testnet USDT0 address:
+  const REAL_USDT0_ADDRESS = "0x779Ded0c9e1022225f8E0630b35a9b54bE713736"; 
+  const usdt0Addr = REAL_USDT0_ADDRESS;
+  console.log(`USDT0 Address Used: ${usdt0Addr}`);
+
+  // Deploy Oracle and Pool using the REAL_USDT0_ADDRESS:
+  const Oracle = await ethers.getContractFactory("UmbrellaOracleAdapter");
+  const oracle = await Oracle.deploy();
+  await oracle.waitForDeployment();
+
+  const LendingPool = await ethers.getContractFactory("LendingPool");
+  const pool = await LendingPool.deploy(usdt0Addr, await oracle.getAddress(), 7000);
+  await pool.waitForDeployment();
+
+```
+
+Keep the oracle mapping: `address(0)` stands for native **RBTC**; `address(USDT0)` for USDT0.
+
+4) Prices & Oracle Configuration:
+- This boilerplate uses **UmbrellaOracleAdapter** with owner‑settable prices.
+- For a real integration, replace it with a production oracle (e.g. APRO/RedStone/Umbrella) and keep the `IPriceOracle` interface.
+
+Run the custom deployment:
 `npx hardhat run --network rskTestnet scripts/demo-testnet.js`
 
----
+Result:
+
+```bash
+Deployer: 0x112621448Eb148173d5b00edB14B1f576c58cCEE
+USDT0  : 0xf7F1Fe4c7dea6401Ae4e486502832782247E7A0f decimals: 6n
+Oracle : 0xf9C3D70C33CBa0be571df7B9E3f0697C8ef40d69
+Pool   : 0xC09Fe81b40DB2a013017bc2BcFfc718A25C45Cd3
+Deposited RBTC: 0.01
+
+== After deposit ==
+Collateral (RBTC): 0.01
+Debt (USDT0)     : 0.0
+Collateral USD   : 1110.0
+Debt USD         : 0.0
+Max Debt USD     : 777.0
+Health Factor    : 115792089237316195423570985008687907853269984665640564039457.584007913129639935
+Borrowed USDT0 ~ 738.15
+
+== After borrow ==
+Collateral (RBTC): 0.01
+Debt (USDT0)     : 738.15
+Collateral USD   : 1110.0
+Debt USD         : 738.15
+Max Debt USD     : 777.0
+Health Factor    : 1.052631578947368421
+Repaid USDT0 ~ 295.26
+
+== After repay ==
+Collateral (RBTC): 0.01
+Debt (USDT0)     : 442.89
+Collateral USD   : 1110.0
+Debt USD         : 442.89
+Max Debt USD     : 777.0
+Health Factor    : 1.754385964912280701
+Withdrew RBTC: 0.002
+
+== After withdraw ==
+Collateral (RBTC): 0.008
+Debt (USDT0)     : 442.89
+Collateral USD   : 888.0
+Debt USD         : 442.89
+Max Debt USD     : 621.6
+Health Factor    : 1.403508771929824561
+
+Demo testnet completed ✅
+```
+
+\> If you get the error: `ProviderError: insufficient funds to pay for pending and new transactions`
+
+- Note: Ensure to have sufficient tRBTC of at least `0.003 tRBTC` to cover deployment and transaction fees.
 
 ## Contracts Overview (minimal unit)
 
 - **contracts/LendingPool.sol**  
-  Core logic to deposit native **RBTC**, borrow **USDT0**, check solvency with **LTV**, compute **health factor**.
+  Core logic to deposit native **rBTC**, borrow **USDT0**, check solvency with **LTV**, compute **health factor**.
   - `depositRBTC()` payable
   - `borrowUSDT0(amount)`
   - `repayUSDT0(amount)`
@@ -85,7 +223,7 @@ Then run your custom deployment using:
 
 ## Minimal Interaction Examples
 
-- **Deposit** 0.01 RBTC:
+- **Deposit** 0.01 rBTC:
 ```js
 await pool.depositRBTC({ value: ethers.parseEther("0.01") });
 ```
@@ -101,7 +239,7 @@ await usdt0.approve(poolAddr, ethers.parseUnits("200", 6));
 await pool.repayUSDT0(ethers.parseUnits("200", 6));
 ```
 
-- **Withdraw** 0.002 RBTC (keeps HF ≥ 1):
+- **Withdraw** 0.002 rBTC (keeps HF ≥ 1):
 ```js
 await pool.withdrawRBTC(ethers.parseEther("0.002"));
 ```
@@ -114,9 +252,7 @@ await oracle.setBatch(
 );
 ```
 
----
-
-## What’s deliberately **omitted** (to keep it tiny)
+## Omitted features (to keep it simple)
 
 - Interest accrual (no time‑based rates)
 - aTokens/cTokens or interest‑bearing receipts
@@ -125,9 +261,7 @@ await oracle.setBatch(
 - Multiple collateral/borrow assets
 - Real oracle wiring (we use a minimal mock adapter)
 
-This is a **first step** you can fork and extend into a full money market.
-
----
+This boilerplate is meant as a **first step**, you can fork and extend into a full money market.
 
 ## File Tree
 
@@ -145,12 +279,6 @@ package.json
 .env.example
 README.md
 ```
-
----
-
-### Getting Rootstock Testnet tRBTC
-
-You can get testnet tRBTC from the [Rootstock Faucet](https://faucet.rootstock.io/).
 
 ## Documentation
 
