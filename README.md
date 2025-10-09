@@ -15,6 +15,8 @@
 
 ## Quick Start (local / Replit)
 
+Test this example on Rootstock Replit [Here](https://replit.com/@rootstockDevX/Rootstock-Lending-Boilerplate)
+
 1) **Install** (first run only):
 ```bash
 npm install
