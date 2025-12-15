@@ -102,6 +102,10 @@ author = "agent"
 task = "workflow.run"
 args = "Demo"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Frontend"
+
 [[workflows.workflow]]
 name = "Demo"
 author = "agent"
@@ -112,3 +116,19 @@ outputType = "console"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "echo \"n\" | npx hardhat run scripts/demo.js"
+
+[[workflows.workflow]]
+name = "Frontend"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd frontend && npm run dev"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80

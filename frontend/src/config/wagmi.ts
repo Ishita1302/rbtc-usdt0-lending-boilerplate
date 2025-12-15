@@ -1,4 +1,5 @@
 import { http, createConfig } from 'wagmi'
+import { injected } from 'wagmi/connectors'
 import { defineChain } from 'viem'
 
 export const rskTestnet = defineChain({
@@ -46,6 +47,9 @@ export const rskMainnet = defineChain({
 
 export const config = createConfig({
   chains: [rskTestnet, rskMainnet],
+  connectors: [
+    injected(),
+  ],
   transports: {
     [rskTestnet.id]: http(),
     [rskMainnet.id]: http(),

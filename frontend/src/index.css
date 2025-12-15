@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 @layer base {
   * {
@@ -68,10 +66,15 @@
   }
 
   .btn-primary {
-    @apply px-6 py-3 rounded-xl font-semibold transition-all duration-300;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
     background: linear-gradient(135deg, #FF6B00, #FBB040);
     color: #0D1117;
     box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
+    border: none;
+    cursor: pointer;
   }
 
   .btn-primary:hover {
@@ -90,7 +93,10 @@
   }
 
   .input-field {
-    @apply w-full px-4 py-3 rounded-xl transition-all duration-300;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
     background: rgba(13, 17, 23, 0.8);
     border: 1px solid #30363D;
     color: #C9D1D9;
@@ -138,4 +144,25 @@
   .bg-noise {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
   }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@theme {
+  --color-rsk-orange: #FF6B00;
+  --color-rsk-yellow: #FBB040;
+  --color-rsk-dark: #0D1117;
+  --color-rsk-darker: #010409;
+  --color-rsk-gray: #161B22;
+  --color-rsk-light: #21262D;
+  --color-rsk-border: #30363D;
+  --color-rsk-text: #C9D1D9;
+  --color-rsk-muted: #8B949E;
 }
