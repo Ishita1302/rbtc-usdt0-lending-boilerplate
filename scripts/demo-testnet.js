@@ -4,7 +4,7 @@ async function main() {
   const [deployer] = await hre.ethers.getSigners();
   console.log("Deployer:", deployer.address);
 
-  // 1) Deploy Mock USDT0 (6 decimals)
+ 
   const MockUSDT0 = await hre.ethers.getContractFactory("MockUSDT0");
   const initialSupply = hre.ethers.parseUnits("1000000", 6); // 1,000,000
   const usdt0 = await MockUSDT0.deploy(initialSupply);
@@ -14,7 +14,7 @@ async function main() {
   const USDT0_SCALE = 10n ** BigInt(usdt0Decimals);
   console.log("USDT0  :", usdt0Addr, "decimals:", usdt0Decimals);
 
-  // 2) Deploy mock oracle and set prices
+  
   const Oracle = await hre.ethers.getContractFactory("UmbrellaOracleAdapter");
   const oracle = await Oracle.deploy();
   await oracle.waitForDeployment();
@@ -28,7 +28,7 @@ async function main() {
     [priceRBTC, priceUSDT0]
   )).wait();
 
-  // 3) Deploy LendingPool (LTV=70%)
+
   const LendingPool = await hre.ethers.getContractFactory("LendingPool");
   const ltvBps = 7000;
   const pool = await LendingPool.deploy(usdt0Addr, oracleAddr, ltvBps);
@@ -36,11 +36,26 @@ async function main() {
   const poolAddr = await pool.getAddress();
   console.log("Pool   :", poolAddr);
 
-  // 4) Seed pool with USDT0 for liquidity
+  
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const frontendDir = path.join(__dirname, "../frontend/src/abis");
+    if (!fs.existsSync(frontendDir)) {
+      fs.mkdirSync(frontendDir, { recursive: true });
+    }
+    const addresses = { USDT0: usdt0Addr, Oracle: oracleAddr, LendingPool: poolAddr };
+    fs.writeFileSync(path.join(frontendDir, "contract-address.json"), JSON.stringify(addresses, null, 2));
+    console.log("Addresses written to frontend/src/abis/contract-address.json");
+  } catch (e) {
+    console.warn("Failed to write addresses to frontend:", e.message);
+  }
+
+  
   const seedAmount = hre.ethers.parseUnits("100000", usdt0Decimals);
   await (await usdt0.transfer(poolAddr, seedAmount)).wait();
 
-  // 5) Deposit native RBTC (make sure you have tRBTC from the faucet)
+  
   const depositAmt = hre.ethers.parseEther("0.01"); // ajusta si quieres
   await (await pool.depositRBTC({ value: depositAmt })).wait();
   console.log("Deposited RBTC:", hre.ethers.formatEther(depositAmt));
@@ -58,7 +73,7 @@ async function main() {
 
   await printAccount("After deposit");
 
-  // 6) Borrow safely (~95% of available margin)
+  
   const data = await pool.getAccountData(deployer.address);
   const headroomUsdE18 = data[4] - data[3];
   const pUSDT0 = await oracle.getPrice(usdt0Addr);
@@ -69,14 +84,14 @@ async function main() {
   console.log("Borrowed USDT0 ~", hre.ethers.formatUnits(borrowAmt, usdt0Decimals));
   await printAccount("After borrow");
 
-  // 7) Repay a part
+  
   const repayAmt = (borrowAmt * 40n) / 100n; // 40% del préstamo
   await (await usdt0.approve(poolAddr, repayAmt)).wait();
   await (await pool.repayUSDT0(repayAmt)).wait();
   console.log("Repaid USDT0 ~", hre.ethers.formatUnits(repayAmt, usdt0Decimals));
   await printAccount("After repay");
 
-  // 8) Withdraw a part of the collateral (keeping HF >= 1)
+  
   const withdrawAmt = hre.ethers.parseEther("0.002");
   await (await pool.withdrawRBTC(withdrawAmt)).wait();
   console.log("Withdrew RBTC:", hre.ethers.formatEther(withdrawAmt));

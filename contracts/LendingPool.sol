@@ -31,6 +31,7 @@ contract LendingPool is Ownable, ReentrancyGuard {
     event Withdrawn(address indexed user, uint256 rbtcAmount);
     event OracleUpdated(address indexed newOracle);
     event LtvUpdated(uint256 newLtvBps);
+    event DebugCollateralValue(address indexed user, uint256 rbtcAmount, uint256 usdValue);
 
     constructor(address _usdt0, address _oracle, uint256 _ltvBps) Ownable() {
         require(_usdt0 != address(0), "USDT0_0");
@@ -64,6 +65,13 @@ contract LendingPool is Ownable, ReentrancyGuard {
     /// @notice Deposit native RBTC as collateral.
     function depositRBTC() external payable nonReentrant {
         require(msg.value > 0, "ZERO_DEPOSIT");
+
+        // --- Debugging ---
+        uint256 pRBTC = oracle.getPrice(RBTC_ASSET);
+        uint256 usdValue = (msg.value * pRBTC) / 1e18;
+        emit DebugCollateralValue(msg.sender, msg.value, usdValue);
+        // --- End Debugging ---
+
         collateralRBTC[msg.sender] += msg.value;
         emit Deposited(msg.sender, msg.value);
     }
