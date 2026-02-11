@@ -10,11 +10,6 @@ import {
 } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import {
-  mainnet,
-  polygon,
-  optimism,
-  arbitrum,
-  base,
   hardhat,
 } from 'wagmi/chains';
 import {

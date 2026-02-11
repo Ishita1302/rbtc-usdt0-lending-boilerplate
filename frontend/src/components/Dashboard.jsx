@@ -47,13 +47,14 @@ const Dashboard = () => {
   });
 
  
-  const { writeContract: deposit, data: depositTxHash, isPending: isDepositPending } = useWriteContract();
-  const { writeContract: withdraw, data: withdrawTxHash, isPending: isWithdrawPending } = useWriteContract();
-  const { writeContract: borrow, data: borrowTxHash, isPending: isBorrowPending } = useWriteContract();
-  const { writeContract: repay, data: repayTxHash, isPending: isRepayPending } = useWriteContract();
-  const { writeContract: approve, data: approveTxHash, isPending: isApprovePending } = useWriteContract();
+  const { writeContract: deposit, data: depositTxHash, isPending: isDepositPending, isError: isDepositError, error: depositError } = useWriteContract();
+  const { writeContract: withdraw, data: withdrawTxHash, isPending: isWithdrawPending, isError: isWithdrawError, error: withdrawError } = useWriteContract();
+  const { writeContract: borrow, data: borrowTxHash, isPending: isBorrowPending, isError: isBorrowError, error: borrowError } = useWriteContract();
+  const { writeContract: repay, data: repayTxHash, isPending: isRepayPending, isError: isRepayError, error: repayError } = useWriteContract();
+  const { writeContract: approve, data: approveTxHash, isPending: isApprovePending, isError: isApproveError, error: approveError } = useWriteContract();
 
-  
+  const [notification, setNotification] = useState(null);
+
   const { isLoading: isDepositConfirming, isSuccess: isDepositSuccess } = useWaitForTransactionReceipt({ hash: depositTxHash });
   const { isLoading: isWithdrawConfirming, isSuccess: isWithdrawSuccess } = useWaitForTransactionReceipt({ hash: withdrawTxHash });
   const { isLoading: isBorrowConfirming, isSuccess: isBorrowSuccess } = useWaitForTransactionReceipt({ hash: borrowTxHash });
@@ -70,11 +71,35 @@ const Dashboard = () => {
       setWithdrawAmount('');
       setBorrowAmount('');
       setRepayAmount('');
+      setNotification({ type: 'success', message: 'Transaction successful!' });
     }
   }, [isDepositSuccess, isWithdrawSuccess, isBorrowSuccess, isRepaySuccess, isApproveSuccess]);
 
+  useEffect(() => {
+      if (notification) {
+          const timer = setTimeout(() => setNotification(null), 5000);
+          return () => clearTimeout(timer);
+      }
+  }, [notification]);
+
+  useEffect(() => {
+    if (isDepositError) setNotification({ type: 'error', message: depositError?.shortMessage || depositError?.message || 'Deposit failed' });
+    if (isWithdrawError) setNotification({ type: 'error', message: withdrawError?.shortMessage || withdrawError?.message || 'Withdraw failed' });
+    if (isBorrowError) setNotification({ type: 'error', message: borrowError?.shortMessage || borrowError?.message || 'Borrow failed' });
+    if (isRepayError) setNotification({ type: 'error', message: repayError?.shortMessage || repayError?.message || 'Repay failed' });
+    if (isApproveError) setNotification({ type: 'error', message: approveError?.shortMessage || approveError?.message || 'Approval failed' });
+  }, [isDepositError, isWithdrawError, isBorrowError, isRepayError, isApproveError]);
+
   const handleDeposit = () => {
-    if (!depositAmount) return;
+    const num = parseFloat(depositAmount);
+    if (isNaN(num) || num <= 0) {
+        setNotification({ type: 'error', message: 'Please enter a valid positive amount.' });
+        return;
+    }
+    if (balanceData && parseEther(depositAmount) > balanceData.value) {
+        setNotification({ type: 'error', message: 'Insufficient RBTC balance.' });
+        return;
+    }
     deposit({
       address: addresses.LendingPool,
       abi: LendingPoolABI,
@@ -84,7 +109,19 @@ const Dashboard = () => {
   };
 
   const handleWithdraw = () => {
-    if (!withdrawAmount) return;
+    const num = parseFloat(withdrawAmount);
+    if (isNaN(num) || num <= 0) {
+        setNotification({ type: 'error', message: 'Please enter a valid positive amount.' });
+        return;
+    }
+    // Check against max withdraw (simple check against collateral, though health factor matters more)
+    // We won't strictly block here based on health factor as that's complex to calc on frontend perfectly without contract call,
+    // but we can check against deposited amount.
+    if (accountData && parseEther(withdrawAmount) > accountData[0]) {
+         setNotification({ type: 'error', message: 'Exceeds deposited collateral.' });
+         return;
+    }
+
     withdraw({
       address: addresses.LendingPool,
       abi: LendingPoolABI,
@@ -94,7 +131,27 @@ const Dashboard = () => {
   };
 
   const handleBorrow = () => {
-    if (!borrowAmount) return;
+    const num = parseFloat(borrowAmount);
+    if (isNaN(num) || num <= 0) {
+        setNotification({ type: 'error', message: 'Please enter a valid positive amount.' });
+        return;
+    }
+    // Check against available borrow
+    const maxDebt = accountData ? accountData[4] : 0n;
+    const currentDebt = accountData ? accountData[3] : 0n;
+    const available = maxDebt > currentDebt ? maxDebt - currentDebt : 0n;
+    // borrowAmount is in USDT0 (6 decimals), available is in USD (18 decimals).
+    // Assuming 1 USDT0 = 1 USD for simplicity in check, or rigorous conversion.
+    // The contract likely uses 18 decimals for internal accounting.
+    // Let's rely on the contract to fail if health factor drops, but we can do a basic check.
+    // accountData[4] is maxDebt in USD (1e18). borrowAmount is USDT (1e6).
+    // 1 USDT ~= 1 USD.
+    const borrowAmountE18 = parseUnits(borrowAmount, 18);
+    if (borrowAmountE18 > available) {
+        setNotification({ type: 'error', message: 'Exceeds available borrow limit.' });
+        return;
+    }
+
     borrow({
       address: addresses.LendingPool,
       abi: LendingPoolABI,
@@ -104,8 +161,17 @@ const Dashboard = () => {
   };
 
   const handleRepay = () => {
-    if (!repayAmount) return;
+    const num = parseFloat(repayAmount);
+    if (isNaN(num) || num <= 0) {
+        setNotification({ type: 'error', message: 'Please enter a valid positive amount.' });
+        return;
+    }
     const amount = parseUnits(repayAmount, 6);
+    if (usdtBalance && amount > usdtBalance) {
+        setNotification({ type: 'error', message: 'Insufficient USDT0 balance.' });
+        return;
+    }
+
     if (usdtAllowance < amount) {
       approve({
         address: addresses.USDT0,
@@ -132,10 +198,25 @@ const Dashboard = () => {
   const debtUsdt0 = accountData ? formatUnits(accountData[1], 6) : '0';
   const collUsd = accountData ? formatUnits(accountData[2], 18) : '0';
   const debtUsd = accountData ? formatUnits(accountData[3], 18) : '0';
+  const maxDebtUsd = accountData ? formatUnits(accountData[4], 18) : '0';
   const healthFactor = accountData ? formatUnits(accountData[5], 18) : '0';
+
+  // Calculate available to borrow
+  const availableToBorrow = accountData ? formatUnits(
+      accountData[4] > accountData[3] ? accountData[4] - accountData[3] : 0n,
+      18
+  ) : '0';
+
+  const isApprovalNeeded = repayAmount && usdtAllowance !== undefined && parseUnits(repayAmount, 6) > usdtAllowance;
 
   return (
     <div className="space-y-6">
+      {notification && (
+        <div className={`p-4 rounded-md ${notification.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+          {notification.message}
+        </div>
+      )}
+
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-lg shadow">
@@ -228,7 +309,7 @@ const Dashboard = () => {
                 {isBorrowPending || isBorrowConfirming ? 'Processing...' : 'Borrow'}
               </button>
             </div>
-             <p className="text-xs text-gray-500">Available to Borrow: Check Max Debt USD</p>
+             <p className="text-xs text-gray-500">Available to Borrow: ${parseFloat(availableToBorrow).toFixed(2)}</p>
           </div>
 
           <div className="space-y-2 pt-4 border-t">
@@ -246,7 +327,9 @@ const Dashboard = () => {
                 disabled={isRepayPending || isRepayConfirming || isApprovePending || isApproveConfirming}
                 className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:bg-purple-300"
               >
-                {isApprovePending || isApproveConfirming ? 'Approving...' : (isRepayPending || isRepayConfirming ? 'Repaying...' : 'Repay')}
+                {isApprovePending || isApproveConfirming ? 'Approving...' : 
+                 isRepayPending || isRepayConfirming ? 'Repaying...' : 
+                 isApprovalNeeded ? 'Approve' : 'Repay'}
               </button>
             </div>
              <p className="text-xs text-gray-500">Wallet Balance: {usdtBalance ? formatUnits(usdtBalance, 6) : '0'} USDT0</p>
