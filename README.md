@@ -276,11 +276,17 @@ contracts/
 scripts/
   demo.js
   demo-testnet.js
+frontend/
+  README.md
 hardhat.config.js
 package.json
 .env.example
 README.md
 ```
+
+### Frontend README
+
+The `frontend/README.md` file documents the React-based dApp used to interact with this lending boilerplate. It explains what lives in the `frontend/` folder, how to run the UI locally, and how it connects to the deployed contracts.
 
 ## Documentation
 
