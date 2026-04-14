@@ -5,6 +5,7 @@ import { injected } from 'wagmi/connectors'
 import { useState } from 'react'
 import { truncateAddress, formatRBTC } from '../lib/utils'
 import { rskTestnet } from '../config/wagmi'
+import { VaporButton } from './ui/vapor'
 
 export function Header() {
   const { address, isConnected } = useAccount()
@@ -31,19 +32,19 @@ export function Header() {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 right-0 z-50 glass-card mx-4 mt-4 px-6 py-4"
+      className="fixed top-0 left-0 right-0 z-40 vw-card mx-4 mt-4 px-6 py-4 rounded-none"
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <motion.div
           className="flex items-center gap-3"
           whileHover={{ scale: 1.02 }}
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF6B00] to-[#FBB040] flex items-center justify-center">
-            <span className="text-[#0D1117] font-bold text-xl">R</span>
+          <div className="w-10 h-10 border-2 border-[#FF9100] bg-[#050505] flex items-center justify-center shadow-[0_0_12px_rgba(255,145,0,0.38)]">
+            <span className="text-[#FF9100] font-bold text-xl vw-heading">R</span>
           </div>
           <div>
-            <h1 className="font-bold text-xl text-white">RSK Lending</h1>
-            <p className="text-xs text-rsk-muted">DeFi on Rootstock</p>
+            <h1 className="vw-heading font-bold text-xl text-[#F5F5F5]">RSK Lending</h1>
+            <p className="text-xs text-[#C8B9D9]">&gt; DeFi on Rootstock</p>
           </div>
         </motion.div>
 
@@ -52,40 +53,40 @@ export function Header() {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="px-3 py-2 rounded-lg bg-red-500/20 border border-red-500/50 text-red-400 text-sm"
+              className="px-3 py-2 bg-red-500/20 border-2 border-red-500/60 text-red-300 text-sm"
             >
               Wrong Network
             </motion.div>
           )}
 
           {!isConnected ? (
-            <motion.button
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <VaporButton
               onClick={handleConnect}
               disabled={isPending}
-              className="btn-primary flex items-center gap-2"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-2"
             >
               <Wallet className="w-5 h-5" />
               {isPending ? 'Connecting...' : 'Connect Wallet'}
-            </motion.button>
+              </VaporButton>
+            </motion.div>
           ) : (
             <div className="relative">
               <motion.button
                 onClick={() => setShowDropdown(!showDropdown)}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-rsk-light border border-rsk-border hover:border-[#FF6B00]/50 transition-all"
+                className="flex items-center gap-3 px-4 py-2.5 bg-[#050505]/90 border-2 border-[#2B2B2B] hover:border-[#FF9100] transition-all duration-200 ease-linear"
                 whileHover={{ scale: 1.02 }}
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF6B00] to-[#FBB040] flex items-center justify-center">
-                  <Wallet className="w-4 h-4 text-[#0D1117]" />
+                <div className="w-8 h-8 border border-[#D27CFF] bg-[#0E0E0E] flex items-center justify-center">
+                  <Wallet className="w-4 h-4 text-[#FF9100]" />
                 </div>
                 <div className="text-left">
-                  <p className="text-sm font-medium text-white">{truncateAddress(address!)}</p>
-                  <p className="text-xs text-rsk-muted">
+                  <p className="text-sm font-medium text-[#F5F5F5]">{truncateAddress(address!)}</p>
+                  <p className="text-xs text-[#C8B9D9]">
                     {balance ? `${parseFloat(formatRBTC(balance.value)).toFixed(4)} tRBTC` : '0 tRBTC'}
                   </p>
                 </div>
-                <ChevronDown className={`w-4 h-4 text-rsk-muted transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-[#C8B9D9] transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
               </motion.button>
 
               {showDropdown && (
@@ -93,27 +94,27 @@ export function Header() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="absolute right-0 mt-2 w-56 rounded-xl glass-card border border-rsk-border overflow-hidden"
+                  className="absolute right-0 mt-2 w-56 rounded-none vw-terminal overflow-hidden"
                 >
                   <button
                     onClick={copyAddress}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-rsk-light transition-colors text-left"
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#FF9100]/12 transition-colors text-left"
                   >
-                    <Copy className="w-4 h-4 text-rsk-muted" />
-                    <span className="text-sm text-rsk-text">Copy Address</span>
+                    <Copy className="w-4 h-4 text-[#C8B9D9]" />
+                    <span className="text-sm text-[#F5F5F5]">Copy Address</span>
                   </button>
                   <a
                     href={`https://explorer.testnet.rsk.co/address/${address}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-rsk-light transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#FF9100]/12 transition-colors"
                   >
-                    <ExternalLink className="w-4 h-4 text-rsk-muted" />
-                    <span className="text-sm text-rsk-text">View on Explorer</span>
+                    <ExternalLink className="w-4 h-4 text-[#C8B9D9]" />
+                    <span className="text-sm text-[#F5F5F5]">View on Explorer</span>
                   </a>
                   <button
                     onClick={() => { disconnect(); setShowDropdown(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-rsk-light transition-colors text-left border-t border-rsk-border"
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-500/10 transition-colors text-left border-t border-[#2B2B2B]"
                   >
                     <LogOut className="w-4 h-4 text-red-400" />
                     <span className="text-sm text-red-400">Disconnect</span>

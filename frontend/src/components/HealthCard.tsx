@@ -38,15 +38,15 @@ export function HealthCard() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-card p-6"
+        className="vw-card p-6 rounded-none"
       >
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-rsk-light rounded w-1/3"></div>
-          <div className="h-24 bg-rsk-light rounded"></div>
+          <div className="h-8 bg-[#2D1B4E] w-1/3"></div>
+          <div className="h-24 bg-[#2D1B4E]"></div>
           <div className="grid grid-cols-3 gap-4">
-            <div className="h-16 bg-rsk-light rounded"></div>
-            <div className="h-16 bg-rsk-light rounded"></div>
-            <div className="h-16 bg-rsk-light rounded"></div>
+            <div className="h-16 bg-[#2D1B4E]"></div>
+            <div className="h-16 bg-[#2D1B4E]"></div>
+            <div className="h-16 bg-[#2D1B4E]"></div>
           </div>
         </div>
       </motion.div>
@@ -57,22 +57,22 @@ export function HealthCard() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card p-6 relative overflow-hidden"
+      className="vw-card p-6 relative overflow-hidden rounded-none"
     >
-      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-radial from-[#FF6B00]/10 to-transparent rounded-full blur-3xl"></div>
+      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-radial from-[#FF9100]/15 to-transparent rounded-full blur-3xl"></div>
       
       <div className="relative">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#FF6B00] to-[#FBB040]">
-              <Activity className="w-5 h-5 text-[#0D1117]" />
+            <div className="p-2.5 border-2 border-[#FF9100] bg-[#050505]">
+              <Activity className="w-5 h-5 text-[#FF9100]" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Loan Health</h2>
-              <p className="text-sm text-rsk-muted">Your position overview</p>
+              <h2 className="text-xl font-bold text-[#F5F5F5] vw-heading">Loan Health</h2>
+              <p className="text-sm text-[#C8B9D9]">Your position overview</p>
             </div>
           </div>
-          <div className={cn('px-3 py-1.5 rounded-full flex items-center gap-2 border', healthBg[healthStatus])}>
+          <div className={cn('px-3 py-1.5 rounded-none flex items-center gap-2 border-2', healthBg[healthStatus])}>
             <StatusIcon className={cn('w-4 h-4', `health-${healthStatus}`)} />
             <span className={cn('text-sm font-medium capitalize', `health-${healthStatus}`)}>
               {healthStatus}
@@ -91,10 +91,10 @@ export function HealthCard() {
               {formatHealthFactor(healthFactorE18)}
             </motion.span>
             {healthFactorE18 !== BigInt(0) && healthFactorE18 !== BigInt('115792089237316195423570985008687907853269984665640564039457584007913129639935') && (
-              <span className="text-rsk-muted text-lg mb-1">Health Factor</span>
+              <span className="text-[#C8B9D9] text-lg mb-1">Health Factor</span>
             )}
           </div>
-          <p className="text-rsk-muted text-sm">
+          <p className="text-[#C8B9D9] text-sm">
             {healthStatus === 'danger' 
               ? 'Your position is at risk of liquidation!' 
               : healthStatus === 'warning'
@@ -106,42 +106,42 @@ export function HealthCard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <motion.div
             whileHover={{ scale: 1.02 }}
-            className="p-4 rounded-xl bg-rsk-dark/50 border border-rsk-border"
+            className="p-4 bg-[#050505]/70 border border-[#2B2B2B]"
           >
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="w-4 h-4 text-emerald-400" />
-              <span className="text-sm text-rsk-muted">Collateral</span>
+              <span className="text-sm text-[#C8B9D9]">Collateral</span>
             </div>
-            <p className="text-2xl font-bold text-white">{formatUSD(collUsdE18)}</p>
-            <p className="text-xs text-rsk-muted mt-1">
+            <p className="text-2xl font-bold text-[#F5F5F5]">{formatUSD(collUsdE18)}</p>
+            <p className="text-xs text-[#C8B9D9] mt-1">
               {parseFloat(formatRBTC(collRbtcWei)).toFixed(6)} RBTC
             </p>
           </motion.div>
 
           <motion.div
             whileHover={{ scale: 1.02 }}
-            className="p-4 rounded-xl bg-rsk-dark/50 border border-rsk-border"
+            className="p-4 bg-[#050505]/70 border border-[#2B2B2B]"
           >
             <div className="flex items-center gap-2 mb-2">
               <TrendingDown className="w-4 h-4 text-rose-400" />
-              <span className="text-sm text-rsk-muted">Debt</span>
+              <span className="text-sm text-[#C8B9D9]">Debt</span>
             </div>
-            <p className="text-2xl font-bold text-white">{formatUSD(debtUsdE18)}</p>
-            <p className="text-xs text-rsk-muted mt-1">
+            <p className="text-2xl font-bold text-[#F5F5F5]">{formatUSD(debtUsdE18)}</p>
+            <p className="text-xs text-[#C8B9D9] mt-1">
               {parseFloat(formatUSDT0(debtUsdt0)).toFixed(2)} USDT0
             </p>
           </motion.div>
 
           <motion.div
             whileHover={{ scale: 1.02 }}
-            className="p-4 rounded-xl bg-rsk-dark/50 border border-rsk-border"
+            className="p-4 bg-[#050505]/70 border border-[#2B2B2B]"
           >
             <div className="flex items-center gap-2 mb-2">
-              <Shield className="w-4 h-4 text-[#FBB040]" />
-              <span className="text-sm text-rsk-muted">Borrow Capacity</span>
+              <Shield className="w-4 h-4 text-[#FF9100]" />
+              <span className="text-sm text-[#C8B9D9]">Borrow Capacity</span>
             </div>
-            <p className="text-2xl font-bold text-white">{formatUSD(maxDebtUsdE18)}</p>
-            <p className="text-xs text-rsk-muted mt-1">
+            <p className="text-2xl font-bold text-[#F5F5F5]">{formatUSD(maxDebtUsdE18)}</p>
+            <p className="text-xs text-[#C8B9D9] mt-1">
               LTV: {ltv}%
             </p>
           </motion.div>

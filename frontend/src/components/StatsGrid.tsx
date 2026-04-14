@@ -12,28 +12,28 @@ export function StatsGrid() {
       label: 'Loan-to-Value',
       value: `${ltv}%`,
       description: 'Maximum borrowing power',
-      gradient: 'from-purple-500 to-pink-500',
+      accent: '#D27CFF',
     },
     {
       icon: Landmark,
       label: 'Protocol',
       value: 'Rootstock',
       description: 'Bitcoin-powered DeFi',
-      gradient: 'from-orange-500 to-yellow-500',
+      accent: '#FF9100',
     },
     {
       icon: DollarSign,
       label: 'Stablecoin',
       value: 'USDT0',
       description: 'Borrow stable assets',
-      gradient: 'from-green-500 to-emerald-500',
+      accent: '#FFFFFF',
     },
     {
       icon: Sparkles,
       label: 'Collateral',
       value: 'RBTC',
       description: 'Native Bitcoin on RSK',
-      gradient: 'from-blue-500 to-cyan-500',
+      accent: '#D27CFF',
     },
   ]
 
@@ -46,14 +46,14 @@ export function StatsGrid() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
           whileHover={{ scale: 1.02, y: -2 }}
-          className="glass-card p-4 cursor-default"
+          className="vw-card p-4 cursor-default rounded-none transition-all duration-200 ease-linear hover:-translate-y-1 hover:shadow-[0_0_24px_rgba(0,255,255,0.25)]"
         >
-          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center mb-3`}>
-            <stat.icon className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 border-2 bg-[#050505] flex items-center justify-center mb-3 rotate-45 transition-all duration-200 ease-linear" style={{ borderColor: stat.accent }}>
+            <stat.icon className="w-5 h-5 -rotate-45" style={{ color: stat.accent }} />
           </div>
-          <p className="text-2xl font-bold text-white mb-1">{stat.value}</p>
-          <p className="text-sm font-medium text-rsk-text">{stat.label}</p>
-          <p className="text-xs text-rsk-muted mt-1">{stat.description}</p>
+          <p className="text-2xl font-bold text-[#F5F5F5] mb-1 vw-heading">{stat.value}</p>
+          <p className="text-sm font-medium text-[#FF9100]">{stat.label}</p>
+          <p className="text-xs text-[#C8B9D9] mt-1">{stat.description}</p>
         </motion.div>
       ))}
     </div>

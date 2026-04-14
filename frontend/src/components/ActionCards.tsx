@@ -13,6 +13,7 @@ import {
   useUSDT0Allowance
 } from '../hooks/useLendingPool'
 import { parseRBTC, parseUSDT0, formatRBTC, formatUSDT0, cn } from '../lib/utils'
+import { VaporButton, VaporInput } from './ui/vapor'
 
 type ActionTab = 'deposit' | 'withdraw' | 'borrow' | 'repay'
 
@@ -32,18 +33,18 @@ function ActionInput({
 }) {
   return (
     <div className="relative">
-      <input
+      <VaporInput
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="input-field pr-24"
+        className="pr-24"
       />
       <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
         {onMax && (
           <button
             onClick={onMax}
-            className="px-2 py-1 text-xs font-medium text-[#FF6B00] hover:text-[#FBB040] transition-colors"
+            className="px-2 py-1 text-xs font-medium text-[#D27CFF] hover:text-[#FF9100] transition-colors"
           >
             MAX
           </button>
@@ -76,13 +77,13 @@ function TransactionStatus({
         className="mt-4"
       >
         {isPending && (
-          <div className="flex items-center gap-2 text-[#FBB040]">
+        <div className="flex items-center gap-2 text-[#FF9100]">
             <Loader2 className="w-4 h-4 animate-spin" />
             <span className="text-sm">Waiting for wallet confirmation...</span>
           </div>
         )}
         {isConfirming && (
-          <div className="flex items-center gap-2 text-[#FBB040]">
+        <div className="flex items-center gap-2 text-[#FF9100]">
             <Loader2 className="w-4 h-4 animate-spin" />
             <span className="text-sm">Transaction pending...</span>
           </div>
@@ -129,19 +130,19 @@ export function ActionCards() {
       refetchAccount()
       refetchUSDT0Balance()
     }
-  }, [isDepositSuccess, isWithdrawSuccess, isBorrowSuccess, isRepaySuccess])
+  }, [isDepositSuccess, isWithdrawSuccess, isBorrowSuccess, isRepaySuccess, refetchAccount, refetchUSDT0Balance])
 
   useEffect(() => {
     if (isApproveSuccess) {
       refetchAllowance()
     }
-  }, [isApproveSuccess])
+  }, [isApproveSuccess, refetchAllowance])
 
   const tabs = [
-    { id: 'deposit' as const, label: 'Deposit', icon: ArrowDownToLine, color: 'from-emerald-500 to-green-400' },
-    { id: 'withdraw' as const, label: 'Withdraw', icon: ArrowUpFromLine, color: 'from-blue-500 to-cyan-400' },
-    { id: 'borrow' as const, label: 'Borrow', icon: Coins, color: 'from-purple-500 to-pink-400' },
-    { id: 'repay' as const, label: 'Repay', icon: CreditCard, color: 'from-orange-500 to-yellow-400' },
+    { id: 'deposit' as const, label: 'Deposit', icon: ArrowDownToLine },
+    { id: 'withdraw' as const, label: 'Withdraw', icon: ArrowUpFromLine },
+    { id: 'borrow' as const, label: 'Borrow', icon: Coins },
+    { id: 'repay' as const, label: 'Repay', icon: CreditCard },
   ]
 
   const handleAction = () => {
@@ -157,7 +158,7 @@ export function ActionCards() {
       case 'borrow':
         borrow(parseUSDT0(amount))
         break
-      case 'repay':
+      case 'repay': {
         const repayAmount = parseUSDT0(amount)
         const currentAllowance = allowance || BigInt(0)
         if (currentAllowance < repayAmount) {
@@ -166,6 +167,7 @@ export function ActionCards() {
           repay(repayAmount)
         }
         break
+      }
     }
   }
 
@@ -177,10 +179,11 @@ export function ActionCards() {
         return formatRBTC(collRbtcWei)
       case 'borrow':
         return '0'
-      case 'repay':
+      case 'repay': {
         const balance = usdt0Balance || BigInt(0)
         const debt = debtUsdt0
         return formatUSDT0(balance < debt ? balance : debt)
+      }
       default:
         return '0'
     }
@@ -218,7 +221,7 @@ export function ActionCards() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="glass-card p-6"
+      className="vw-card p-6 rounded-none"
     >
       <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
         {tabs.map((tab) => (
@@ -226,10 +229,10 @@ export function ActionCards() {
             key={tab.id}
             onClick={() => { setActiveTab(tab.id); setAmount(''); }}
             className={cn(
-              'flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap',
+              'flex items-center gap-2 px-4 py-2.5 border-2 rounded-none transition-all whitespace-nowrap duration-200 ease-linear',
               activeTab === tab.id
-                ? `bg-gradient-to-r ${tab.color} text-white shadow-lg`
-                : 'bg-rsk-light text-rsk-muted hover:text-white border border-rsk-border'
+                ? 'bg-[#FF9100]/12 border-[#FF9100] text-[#FF9100] shadow-[0_0_12px_rgba(255,145,0,0.36)]'
+                : 'bg-[#050505]/90 text-[#C8B9D9] border-[#2B2B2B] hover:text-[#F5F5F5] hover:border-[#D27CFF]'
             )}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -251,7 +254,7 @@ export function ActionCards() {
           {activeTab === 'deposit' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-rsk-text mb-2">Amount to Deposit</label>
+                <label className="block text-sm font-medium text-[#F5F5F5] mb-2 vw-heading">Amount to Deposit</label>
                 <ActionInput
                   value={amount}
                   onChange={setAmount}
@@ -260,7 +263,7 @@ export function ActionCards() {
                   maxValue={getMaxValue()}
                   onMax={() => setAmount(getMaxValue())}
                 />
-                <p className="text-xs text-rsk-muted mt-2">
+                <p className="text-xs text-[#C8B9D9] mt-2">
                   Balance: {rbtcBalance ? parseFloat(formatRBTC(rbtcBalance.value)).toFixed(6) : '0'} RBTC
                 </p>
               </div>
@@ -270,7 +273,7 @@ export function ActionCards() {
           {activeTab === 'withdraw' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-rsk-text mb-2">Amount to Withdraw</label>
+                <label className="block text-sm font-medium text-[#F5F5F5] mb-2 vw-heading">Amount to Withdraw</label>
                 <ActionInput
                   value={amount}
                   onChange={setAmount}
@@ -279,7 +282,7 @@ export function ActionCards() {
                   maxValue={getMaxValue()}
                   onMax={() => setAmount(getMaxValue())}
                 />
-                <p className="text-xs text-rsk-muted mt-2">
+                <p className="text-xs text-[#C8B9D9] mt-2">
                   Deposited: {parseFloat(formatRBTC(collRbtcWei)).toFixed(6)} RBTC
                 </p>
               </div>
@@ -289,14 +292,14 @@ export function ActionCards() {
           {activeTab === 'borrow' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-rsk-text mb-2">Amount to Borrow</label>
+                <label className="block text-sm font-medium text-[#F5F5F5] mb-2 vw-heading">Amount to Borrow</label>
                 <ActionInput
                   value={amount}
                   onChange={setAmount}
                   placeholder="0.0"
                   symbol="USDT0"
                 />
-                <p className="text-xs text-rsk-muted mt-2">
+                <p className="text-xs text-[#C8B9D9] mt-2">
                   Current Debt: {parseFloat(formatUSDT0(debtUsdt0)).toFixed(2)} USDT0
                 </p>
               </div>
@@ -306,7 +309,7 @@ export function ActionCards() {
           {activeTab === 'repay' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-rsk-text mb-2">Amount to Repay</label>
+                <label className="block text-sm font-medium text-[#F5F5F5] mb-2 vw-heading">Amount to Repay</label>
                 <ActionInput
                   value={amount}
                   onChange={setAmount}
@@ -315,7 +318,7 @@ export function ActionCards() {
                   maxValue={getMaxValue()}
                   onMax={() => setAmount(getMaxValue())}
                 />
-                <p className="text-xs text-rsk-muted mt-2">
+                <p className="text-xs text-[#C8B9D9] mt-2">
                   Debt: {parseFloat(formatUSDT0(debtUsdt0)).toFixed(2)} USDT0 | 
                   Balance: {usdt0Balance ? parseFloat(formatUSDT0(usdt0Balance)).toFixed(2) : '0'} USDT0
                 </p>
@@ -323,12 +326,15 @@ export function ActionCards() {
             </div>
           )}
 
-          <motion.button
-            onClick={handleAction}
-            disabled={!isConnected || isLoading || !amount || parseFloat(amount) <= 0}
-            className="btn-primary w-full mt-6 flex items-center justify-center gap-2"
+          <motion.div
             whileHover={{ scale: isLoading ? 1 : 1.02 }}
             whileTap={{ scale: isLoading ? 1 : 0.98 }}
+            className="mt-6"
+          >
+            <VaporButton
+            onClick={handleAction}
+            disabled={!isConnected || isLoading || !amount || parseFloat(amount) <= 0}
+            className="w-full flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
@@ -350,7 +356,8 @@ export function ActionCards() {
                 {tabs.find(t => t.id === activeTab)?.label}
               </>
             )}
-          </motion.button>
+            </VaporButton>
+          </motion.div>
 
           <TransactionStatus {...status} />
         </motion.div>
