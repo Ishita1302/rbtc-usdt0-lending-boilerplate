@@ -5,11 +5,13 @@ const { commandArgs } = require("../utils/parse-command");
 const { parseAddress } = require("../utils/address");
 const { formatHealthFactor, formatUsdE18 } = require("../utils/format");
 const { code, lines } = require("../utils/html");
-const { formatUserError } = require("../utils/errors");
+const { logServerError, userFacingError } = require("../utils/errors");
 
 /**
- * @param {import('telegraf').Telegraf} bot
- * @param {object} ctx
+ * @param {import('telegraf').Context} ctx
+ * @param {import('../session/linked-address-store').LinkedAddressStore} linkedStore
+ * @param {ReturnType<import('../services/lending-client').createLendingClient>} client
+ * @param {string | undefined} optionalArg
  * @returns {{ error: string } | { address: string }}
  */
 function resolveViewAddress(ctx, linkedStore, client, optionalArg) {
@@ -43,20 +45,24 @@ function registerReadCommands(bot, { linkedStore, client }) {
         "<b>Rootstock Lending Boilerplate</b>",
         "",
         "<b>Read</b>",
-        "/link &lt;0x…&gt; — default address for this chat",
+        "/link &lt;0x…&gt; — default address for this chat (in-memory only; lost on bot restart)",
         "/unlink — clear it",
         "/balance [0x…] — wallet + pool position",
         "/health [0x…] — health factor",
         "/ltv — pool LTV (basis points)",
         "",
-        "<b>On-chain</b> (optional PRIVATE_KEY / BOT_PRIVATE_KEY):",
+        "<b>On-chain writes</b> (optional PRIVATE_KEY / BOT_PRIVATE_KEY):",
+        "All writes are sent from the <b>operator wallet</b>, not from linked addresses.",
+        "Require ALLOWED_TELEGRAM_IDS or explicit DANGEROUS_ALLOW_PUBLIC_WRITES=true.",
+        "Use READ_ONLY_MODE=true to disable signing entirely.",
+        "",
         "/deposit &lt;RBTC&gt;",
         "/withdraw &lt;RBTC&gt;",
         "/borrow &lt;USDT0&gt;",
         "/approve &lt;USDT0&gt;",
         "/repay &lt;USDT0&gt;",
         "",
-        "Educational / testnet only.",
+        "Educational / testnet by default (chainId 31).",
       ]),
       { parse_mode: "HTML" }
     )
@@ -67,7 +73,7 @@ function registerReadCommands(bot, { linkedStore, client }) {
   );
 
   bot.command("link", async (ctx) => {
-    const args = commandArgs(ctx.message.text);
+    const args = commandArgs(ctx.message?.text);
     const addrRaw = args[0];
     if (!addrRaw) {
       return ctx.reply("Usage: /link 0xYourAddress", { parse_mode: "HTML" });
@@ -75,7 +81,14 @@ function registerReadCommands(bot, { linkedStore, client }) {
     const a = parseAddress(addrRaw);
     if (!a) return ctx.reply("Invalid address.", { parse_mode: "HTML" });
     linkedStore.set(ctx.chat.id, a);
-    return ctx.reply(`Linked to ${code(a)}`, { parse_mode: "HTML" });
+    return ctx.reply(
+      lines([
+        `Linked to ${code(a)}`,
+        "",
+        "Note: linked addresses are stored in memory only and are cleared when the bot process restarts.",
+      ]),
+      { parse_mode: "HTML" }
+    );
   });
 
   bot.command("unlink", (ctx) => {
@@ -91,14 +104,15 @@ function registerReadCommands(bot, { linkedStore, client }) {
         { parse_mode: "HTML" }
       );
     } catch (e) {
-      return ctx.reply(`RPC error: ${formatUserError(e)}`, {
+      logServerError("read:ltv", e);
+      return ctx.reply(`RPC error: ${userFacingError(e)}`, {
         parse_mode: "HTML",
       });
     }
   });
 
   bot.command("balance", async (ctx) => {
-    const args = commandArgs(ctx.message.text);
+    const args = commandArgs(ctx.message?.text);
     const resolved = resolveViewAddress(ctx, linkedStore, client, args[0]);
     if ("error" in resolved) {
       return ctx.reply(resolved.error, { parse_mode: "HTML" });
@@ -128,12 +142,13 @@ function registerReadCommands(bot, { linkedStore, client }) {
         { parse_mode: "HTML" }
       );
     } catch (e) {
-      return ctx.reply(`Error: ${formatUserError(e)}`, { parse_mode: "HTML" });
+      logServerError("read:balance", e);
+      return ctx.reply(`Error: ${userFacingError(e)}`, { parse_mode: "HTML" });
     }
   });
 
   bot.command("health", async (ctx) => {
-    const args = commandArgs(ctx.message.text);
+    const args = commandArgs(ctx.message?.text);
     const resolved = resolveViewAddress(ctx, linkedStore, client, args[0]);
     if ("error" in resolved) {
       return ctx.reply(resolved.error, { parse_mode: "HTML" });
@@ -152,7 +167,8 @@ function registerReadCommands(bot, { linkedStore, client }) {
         { parse_mode: "HTML" }
       );
     } catch (e) {
-      return ctx.reply(`Error: ${formatUserError(e)}`, { parse_mode: "HTML" });
+      logServerError("read:health", e);
+      return ctx.reply(`Error: ${userFacingError(e)}`, { parse_mode: "HTML" });
     }
   });
 }

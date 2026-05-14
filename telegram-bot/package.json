@@ -5,7 +5,8 @@
   "description": "Telegram interface for Rootstock Lending Boilerplate",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "lint": "eslint ."
   },
   "engines": {
     "node": ">=18"
@@ -14,5 +15,12 @@
     "dotenv": "^16.4.5",
     "ethers": "^6.13.4",
     "telegraf": "^4.16.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0"
+  },
+  "overrides": {
+    "@noble/curves": "^1.8.1",
+    "@noble/hashes": "^1.7.1"
   }
 }

@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * In-memory linked address per Telegram chat.
+ * In-memory linked address per Telegram chat (cleared on process restart).
  * Swap implementation for Redis if you run multiple bot instances.
  */
 class LinkedAddressStore {

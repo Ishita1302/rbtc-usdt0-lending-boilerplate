@@ -9,7 +9,9 @@ const { registerWriteCommands } = require("./write");
  */
 function registerAllCommands(bot, deps) {
   registerReadCommands(bot, deps);
-  registerWriteCommands(bot, deps);
+  if (deps.client.wallet) {
+    registerWriteCommands(bot, deps);
+  }
 }
 
 module.exports = { registerAllCommands };
